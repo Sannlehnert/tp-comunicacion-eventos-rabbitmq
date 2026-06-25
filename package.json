@@ -1,0 +1,19 @@
+{
+  "name": "tp-comunicacion-eventos",
+  "version": "1.0.0",
+  "description": "TP Integración de Aplicaciones - Mesa de ayuda orientada a eventos con RabbitMQ",
+  "main": "api-service/index.js",
+  "scripts": {
+    "api": "node api-service/index.js",
+    "worker:assign": "node workers/assignment-worker.js",
+    "worker:audit": "node workers/audit-worker.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "express": "^4.22.2",
+    "uuid": "^9.0.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/audit.log
+data/metrics.json
+data/processed-events.json
+*.log
