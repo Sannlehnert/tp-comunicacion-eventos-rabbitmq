@@ -19,9 +19,9 @@ app.post('/tickets', async (req, res) => {
       return res.status(400).json({ error: 'Los campos title y priority son obligatorios.' });
     }
 
-    const PRIORIDADES_VALIDAS = ['high', 'normal', 'low'];
+    const PRIORIDADES_VALIDAS = ['high', 'normal', 'low', 'critical'];
     if (!PRIORIDADES_VALIDAS.includes(priority)) {
-      return res.status(400).json({ error: 'La prioridad debe ser high, normal o low.' });
+      return res.status(400).json({ error: 'La prioridad debe ser high, normal, low o critical.' });
     }
 
     const ticketId = `TCK-${String(contadorTickets++).padStart(3, '0')}`;
