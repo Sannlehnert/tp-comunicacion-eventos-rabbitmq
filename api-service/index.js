@@ -2,6 +2,7 @@ const express = require('express');
 const conectarRabbitMQ = require('../shared/conexionRabbit');
 const { crearEvento } = require('../shared/eventos');
 const publicarEvento = require('../shared/publicador');
+const { incrementarContadorDiario } = require('../shared/archivos');
 
 const app = express();
 app.use(express.json());
@@ -34,6 +35,12 @@ app.post('/tickets', async (req, res) => {
 
     const routingKey = `ticket.created.${priority}`;
     publicarEvento(canal, evento, routingKey);
+
+    try {
+      await incrementarContadorDiario();
+    } catch (errorMetrica) {
+      console.error('No se pudo actualizar metrics.json:', errorMetrica.message);
+    }
 
     console.log(`Ticket creado: ${ticketId} - ${title} (prioridad: ${priority})`);
     res.status(201).json(evento);
