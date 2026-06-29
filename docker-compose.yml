@@ -1,0 +1,7 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-tp
+    ports:
+      - "5672:5672"   # puerto AMQP para las aplicaciones
+      - "15672:15672" # interfaz web de administración
