@@ -1,7 +1,7 @@
 const express = require('express');
 const conectarRabbitMQ = require('../shared/conexionRabbit');
 const { crearEvento } = require('../shared/eventos');
-const publicarEvento = require('./publicador');
+const publicarEvento = require('../shared/publicador');
 
 const app = express();
 app.use(express.json());
