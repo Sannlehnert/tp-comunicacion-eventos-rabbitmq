@@ -1,10 +1,11 @@
 const conectarRabbitMQ = require('../shared/conexionRabbit');
 const { crearEvento } = require('../shared/eventos');
 const publicarEvento = require('../shared/publicador');
+const { verificarYRegistrarEvento } = require('../shared/archivos');
 
 const COLA_ASIGNACION = 'helpdesk.assignment';
 const EXCHANGE = 'helpdesk.events';
-const ROUTING_KEY_ENTRADA = 'ticket.created.*';   // captura high, normal y low
+const ROUTING_KEY_ENTRADA = 'ticket.created.*';
 const ROUTING_KEY_SALIDA = 'ticket.assigned';
 const RESPONSABLE = 'Juan Perez';
 
@@ -25,8 +26,17 @@ const RESPONSABLE = 'Juan Perez';
 
       try {
         const eventoCreado = JSON.parse(mensaje.content.toString());
-        console.log(`[assignment-worker] Recibido: ${eventoCreado.type} - ${eventoCreado.payload.ticketId}`);
+        const eventId = eventoCreado.eventId;
 
+        // Verificar idempotencia
+        const esNuevo = await verificarYRegistrarEvento(eventId);
+        if (!esNuevo) {
+          console.log(`Evento duplicado ignorado: ${eventId}`);
+          canal.ack(mensaje);
+          return;
+        }
+
+        console.log(`[assignment-worker] Recibido: ${eventoCreado.type} - ${eventoCreado.payload.ticketId}`);
         console.log(`Asignado a: ${RESPONSABLE}`);
 
         const eventoSiguiente = crearEvento('ticket.assigned', {
