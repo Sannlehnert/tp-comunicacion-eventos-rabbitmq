@@ -6,30 +6,25 @@ const publicarEvento = require('../shared/publicador');
 const app = express();
 app.use(express.json());
 
-// Variables globales para la conexión y el canal (se inicializan al arrancar)
 let conexion = null;
 let canal = null;
-
-// Contador simple para generar ticketId (solo para desarrollo, se reinicia al reiniciar API)
 let contadorTickets = 1;
 
-/**
- * POST /tickets
- * Recibe title, description y priority. Crea y publica el evento ticket.created.
- */
 app.post('/tickets', async (req, res) => {
   try {
     const { title, description, priority } = req.body;
 
-    // Validación mínima
     if (!title || !priority) {
       return res.status(400).json({ error: 'Los campos title y priority son obligatorios.' });
     }
 
-    // Generar un ticketId simple (ej: TCK-001)
+    const PRIORIDADES_VALIDAS = ['high', 'normal', 'low'];
+    if (!PRIORIDADES_VALIDAS.includes(priority)) {
+      return res.status(400).json({ error: 'La prioridad debe ser high, normal o low.' });
+    }
+
     const ticketId = `TCK-${String(contadorTickets++).padStart(3, '0')}`;
 
-    // 1. Crear el evento
     const evento = crearEvento('ticket.created', {
       ticketId,
       title,
@@ -37,11 +32,10 @@ app.post('/tickets', async (req, res) => {
       priority
     });
 
-    // 2. Publicarlo en el exchange
-    publicarEvento(canal, evento, 'ticket.created');
+    const routingKey = `ticket.created.${priority}`;
+    publicarEvento(canal, evento, routingKey);
 
-    // 3. Responder al cliente
-    console.log(`Ticket creado: ${ticketId} - ${title}`);
+    console.log(`Ticket creado: ${ticketId} - ${title} (prioridad: ${priority})`);
     res.status(201).json(evento);
   } catch (error) {
     console.error('Error al procesar el ticket:', error.message);
@@ -49,15 +43,12 @@ app.post('/tickets', async (req, res) => {
   }
 });
 
-// Iniciar el servidor
 (async () => {
   try {
-    // Conectar a RabbitMQ
     const resultado = await conectarRabbitMQ();
     conexion = resultado.conexion;
     canal = resultado.canal;
 
-    // Levantar Express
     const PUERTO = 3000;
     app.listen(PUERTO, () => {
       console.log(`API escuchando en http://localhost:${PUERTO}`);
@@ -69,7 +60,6 @@ app.post('/tickets', async (req, res) => {
   }
 })();
 
-// Cierre ordenado al detener la aplicación (Ctrl+C)
 process.on('SIGINT', async () => {
   console.log('Cerrando servidor...');
   if (canal) await canal.close();
