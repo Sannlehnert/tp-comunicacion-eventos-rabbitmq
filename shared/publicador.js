@@ -1,6 +1,3 @@
-// shared/publicador.js
-// Publica un evento en el exchange de RabbitMQ
-
 const EXCHANGE = 'helpdesk.events';
 
 /**
